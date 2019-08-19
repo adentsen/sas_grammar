@@ -1,17 +1,22 @@
 grammar data_statement_block;
 import atsen_common_grammar;
 
-datastatementblock : data_step_firstline
-					   (data_step_body)+
-					   data_step_lastline;
+Data_Statement_Block : Data_Step_Firstline
+                       (Data_Step_Body)+
+                       RUN ';';
 
-data_step_firstline :
-                DATA (Identifier '.' Identifier)+ ';'
-				 	|DATA (Identifier)+ ';'
-					|DATA (Identifier '.' Identifier)+ (Identifier)+';'
-					|DATA (Identifier)+ (Identifier '.' Identifier)+ ';'
-					;
+Data_Step_Firstline :
+                DATA Dataset_Name';'
+               ;
 
-data_step_body : SET Identifier ';'; 
-data_step_lastline : RUN;
 
+                   
+
+Data_Step_Body : SET Identifier ';'
+               | Expression ';'
+               | INPUT (Identifier $? (Int* '.')?)* ';'
+               | DATALINES ';'
+               | DATALINES4 ';'
+               | INFILE ''' Path '''? (Fileref(Path))? CARDS? CARDS4? DATALINES? DATALINES4? Device_Type?
+               | (Literal)+
+               ; 

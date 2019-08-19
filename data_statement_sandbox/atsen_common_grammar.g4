@@ -1,26 +1,26 @@
 grammar atsen_common_grammar;
 
 
-expression
- : literal
+Expression
+ : Literal
  | Identifier
- | '(' expression ')'
- | expression '(' expressionList? ')'
- | expression '{' expression '}'
- | expression '[' expression ']'
- | <assoc=right> expression '**' expression
- | <assoc=right> ('+'|'-') expression
- | NOT expression
- | expression MIN expression
- | expression MAX expression
- | expression ('*'|'/'|'%') expression
- | expression ('+'|'-') expression
- | expression ('||' | '!!' ) expression
- | expression (EQ | NE | GT | LT | GE | LE ) expression
- //| expression (EQC | NEC | GTC | LTC | GEC | LEC ) expression
- | expression (IN | INColon) in_var_list
- | expression (AND | OR ) expression
- | <assoc=right> expression '=' expression
+ | '(' Expression ')'
+ | Expression '(' ExpressionList? ')'
+ | Expression '{' Expression '}'
+ | Expression '[' Expression ']'
+ | <assoc=right> Expression '**' Expression
+ | <assoc=right> ('+'|'-') Expression
+ | NOT Expression
+ | Expression MIN Expression
+ | Expression MAX Expression
+ | Expression ('*'|'/'|'%') Expression
+ | Expression ('+'|'-') Expression
+ | Expression ('||' | '!!' ) Expression
+ | Expression (EQ | NE | GT | LT | GE | LE ) Expression
+ //| Expression (EQC | NEC | GTC | LTC | GEC | LEC ) Expression
+ | Expression (IN | INColon) in_var_list
+ | Expression (AND | OR ) Expression
+ | <assoc=right> Expression '=' Expression
  ;
 
 
@@ -29,28 +29,28 @@ expression
 
  
 
-INT : [0-9]+ ; 
+Int: [0-9]+ ; 
 
 FloatingPointLiteral 
  : [0-9]* ('.') [0-9]+ ([eE][-+]?[0-9]+)?
- | INT '.'
+ |Int'.'
  ;
 
- STRINGLITERAL
+ StringLiteral
     :   '"' ( ESC | ~[\\"] )* '"'
     |   '\'' ( ESC | ~[\\'] )* '\''
     ;
 
-DateLiteral: STRINGLITERAL D;
-TimeLiteral: STRINGLITERAL T;
-DateTimeLiteral: STRINGLITERAL D T;
-BitLiteral: STRINGLITERAL B;
-NameLiteral: STRINGLITERAL N;
-HexLiteral: STRINGLITERAL X;
+DateLiteral: StringLiteral D;
+TimeLiteral: StringLiteral T;
+DateTimeLiteral: StringLiteral D T;
+BitLiteral: StringLiteral B;
+NameLiteral: StringLiteral N;
+HexLiteral: StringLiteral X;
 
-expressionList 
- : (expression | of_var_list) (',' (expression|of_var_list))*
- | expressionList ','+ expressionList
+ExpressionList 
+ : (Expression | of_var_list) (',' (Expression|of_var_list))*
+ | ExpressionList ','+ ExpressionList
  ;
 
   of_var_list 
@@ -61,13 +61,69 @@ expressionList
 
 in_var_list
  : Identifier
- | '(' (literal|colonInts) (',' (literal|colonInts))* ')'
+ | '(' (Literal|colonInts) (',' (Literal|colonInts))* ')'
  ;
 colonInts
- : INT ':' INT
+ :Int':'Int
  ;
 
  fragment ESC :   '\\' [abtnfrv"'\\]    ;
+
+
+
+Filename_Statement: FILENAME Fileref Device_Type? StringLiteral (ENCODING '=' StringLiteral)? RECFM '=' Variable (Filename_Statement_Operating_Env_Opt)* ';'
+				| FILENAME Fileref Device_Type? RECFM '=' Variable (Filename_Statement_Operating_Env_Opt)* ';'
+				| FILENAME Fileref CLEAR '|'? _ALL_CLEAR '|'? CLEAR ';'
+				| FILENAME Fileref LIST   '|'? _ALL_CLEAR '|'? LIST ';'
+				;
+
+Filename_Statement_Operating_Env_Opt : Variable = Variable;
+
+
+Variable : Identifier;
+					
+
+
+
+
+Device_Type: DISK
+			|DUMMY
+			|GTERM
+			|PIPE
+			|PLOTTER
+			|PRINTER
+			|TAPE
+			|TEMP
+			|TERMINAL
+			|UPRINTER
+			;
+
+//File Statement Constant
+DISK:[Dd][Ii][Ss][Kk];
+DUMMY:[Dd][Uu][Mm][Mm][Yy];
+GTERM:[Gg][Tt][Ee][Rr][Mm];
+PIPE:[Pp][Ii][Pp][Ee];
+PLOTTER:[Pp][Ll][Oo][Tt][Tt][Ee][Rr];
+PRINTER:[Pp][Rr][Ii][Nn][Tt][Ee][Rr];
+TAPE:[Tt][Aa][Pp][Ee];
+TEMP:[Tt][Ee][Mm][Pp];
+TERMINAL:[Tt][Ee][Rr][Mm][Ii][Nn][Aa][Ll];
+UPRINTER:[Uu][Pp][Rr][Ii][Nn][Tt][Ee][Rr];
+
+
+
+Fileref : Identifier;
+
+
+Path:('/' [a-zA-Z_0-9]*) '/'?;
+
+
+
+
+
+
+
+
 
 
  //Reserved keywords
@@ -93,6 +149,15 @@ colonInts
  AND:[Aa][Nn][Dd];
  OR: [Oo][Rr];
  SET: [Ss][Ee][Tt];
+ INPUT : [Ii][Nn][Pp][Uu][Tt];
+ DATALINES: [Dd][Aa][Tt][Aa][Ll][Ii][Nn][Ee][Ss];
+ DATALINES4:[Dd][Aa][Tt][Aa][Ll][Ii][Nn][Ee][Ss]4;
+ INFILE : [Ii][Nn][Ff]Ii[Ll][Ee];
+ FILENAME:[Ff][Ii][Ll][Ee][Nn][Aa][Mm][Ee];
+ LIBNAME: [Ll][Ii][Bb][Nn][Aa][Mm][Ee];
+ CLEAR: [Cc][Ll][Ee][Aa][Rr];
+ _ALL_LIST:_[Aa][Ll][Ll]_[Ll][Ii][Ss][Tt];
+ _ALL_LIST:_[Aa][Ll][Ll]_[Cc][Ll][Aa][Rr];
 
  DESCENDING: [Dd][Ee][Ss][Cc][Ee][Nn][Dd][iI][Nn][Gg];
  NOTSORTED: [Nn][Oo][Tt][Ss][Oo][Rr][Tt][Ee][Dd];
@@ -141,20 +206,32 @@ fragment Y:('y'|'Y');
 fragment Z:('z'|'Z');
 
 
+Dataset_Name :   (Libref '.' Identifier)+ (Identifier)*';'
+               | (Identifier)+ (Libref '.' Identifier)* ';'
+               ;
+
+Libref: Identifier ';';
+
+
 
 Identifier  : [a-zA-Z_] [a-zA-Z_0-9]*  ;
-literal
- : INT
- | FloatingPointLiteral
- | STRINGLITERAL
- | DateLiteral
- | TimeLiteral
- | DateTimeLiteral
- | BitLiteral
- | NameLiteral
- | HexLiteral
- | DOT
- ;
+
+Literal :Int
+  	   	| FloatingPointLiteral
+ 		| StringLiteral
+		 | DateLiteral
+		 | TimeLiteral
+		 | DateTimeLiteral
+		 | BitLiteral
+		 | NameLiteral
+		 | HexLiteral
+		 | DOT
+		 ;
+
+
+
+Variable : Identifier;
+				
 
 
 WS  :   [ \r\t\u000C\n]+ -> channel(HIDDEN) ;
